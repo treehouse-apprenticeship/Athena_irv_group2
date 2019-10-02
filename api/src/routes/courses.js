@@ -18,6 +18,7 @@ const {
   createdResponse,
   noContentResponse,
   successResponse,
+  badRequestResponse,
 } = require('./helpers');
 const db = require('../db');
 const {
@@ -32,6 +33,7 @@ const {
   restrictAccessToCourse,
 } = courseMiddleware;
 const promiseRouter = new PromiseRouter();
+const mongoose = require('mongoose');
 
 promiseRouter.get('/', async (req, res) => {
   const courses = await db.repository.getCourses();
@@ -72,7 +74,11 @@ promiseRouter.delete('/:id',
   getCourse,
   restrictAccessToCourse,
   async (req, res) => {
-    await db.repository.deleteCourse(req.params.id);
+    if(!mongoose.Types.ObjectId.isValid(req.params.id)){
+      badRequestResponse(res,['ID given is not an ObjectId.']);
+      return;
+    }
+    await db.repository.deleteCourse(mongoose.Types.ObjectId(req.params.id));
     noContentResponse(res);
   });
 
